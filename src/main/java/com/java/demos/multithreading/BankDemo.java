@@ -10,11 +10,13 @@ public class BankDemo {
 	private static final int SINGLE_ACCOUNT_INITIAL_BALANCE = 100_000;
 	
     private List<Account> accounts = new ArrayList<>(ACCOUNTS_COUNT);
-    private Set<Account> lockedAccounts = new HashSet<>();
+    private Set<Integer> lockedAccounts = new HashSet<>();
     
     public BankDemo() {
     	for (int i = 0; i < ACCOUNTS_COUNT; i++) {
-    		accounts.add(new Account(SINGLE_ACCOUNT_INITIAL_BALANCE));
+    		var account = new Account(i+1);
+    		account.deposit(SINGLE_ACCOUNT_INITIAL_BALANCE);
+    		accounts.add(account);
     	}
     }
     
@@ -26,7 +28,10 @@ public class BankDemo {
     	return accounts.stream().mapToInt(acc -> acc.getBalance()).sum();
     }
     
-    public void transfer(Account from, Account to, int amount) throws InterruptedException {
+    public void transfer_1(Account from, Account to, int amount) throws InterruptedException {
+    	if (from.getId() == to.getId()) return;
+    	if (from.getBalance() < amount) return;
+    	
     	try {
     		lockAccounts(from, to);
     		
@@ -38,7 +43,25 @@ public class BankDemo {
     	}
     }
     
-    public synchronized void transfer_bad(Account from, Account to, int amount) throws InterruptedException {
+    public void transfer_2(Account from, Account to, int amount) throws InterruptedException {
+    	if (from == to) return;
+    	if (from.getBalance() < amount) return;
+    	
+    	var firstLock = from.getId() < to.getId() ? from : to;
+    	var secondLock = from.getId() < to.getId() ? to : from;
+    	synchronized(firstLock) {
+    		synchronized(secondLock) {
+    			from.withdraw(amount);
+    			Thread.sleep(100); //Simulate long duration
+    			to.deposit(amount);
+    		}
+    	}
+    }
+    
+    public synchronized void transfer_3(Account from, Account to, int amount) throws InterruptedException {
+    	if (from == to) return;
+    	if (from.getBalance() < amount) return;
+    	
 		from.withdraw(amount);
 		Thread.sleep(100); //Simulate long duration
 		to.deposit(amount);
@@ -46,28 +69,33 @@ public class BankDemo {
     
     private void lockAccounts(Account from, Account to) throws InterruptedException {
     	synchronized (lockedAccounts) {
-    		while(lockedAccounts.contains(from) || lockedAccounts.contains(to)) {
+    		while(lockedAccounts.contains(from.getId()) || lockedAccounts.contains(to.getId())) {
     			lockedAccounts.wait();
     		}
-    		lockedAccounts.add(from);
-    		lockedAccounts.add(to);
+    		lockedAccounts.add(from.getId());
+    		lockedAccounts.add(to.getId());
     	}
     }
     
     private void unlockAccounts(Account from, Account to) {
     	synchronized (lockedAccounts) {
-    		lockedAccounts.remove(from);
-    		lockedAccounts.remove(to);
+    		lockedAccounts.remove(from.getId());
+    		lockedAccounts.remove(to.getId());
     		lockedAccounts.notifyAll();
     	}
     }
 }
 
 class Account {
+	private int id;
 	private int balance;
 	
-	public Account(int balance) {
-		this.balance = balance;
+	public Account(int id) {
+		this.id = id;
+	}
+	
+	public int getId() {
+		return id;
 	}
 	
 	public int getBalance() {
