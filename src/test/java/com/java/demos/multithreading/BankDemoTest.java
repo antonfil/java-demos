@@ -36,11 +36,11 @@ public class BankDemoTest {
     }
     
     @Test
-    public void shouldSyncTransfersBetweenAccounts_1() throws Exception {
+    public void shouldSyncTransfersBetweenAccounts_bad() throws Exception {
     	BankDemo bank = new BankDemo(); 
         int initialTotalBalance = bank.getTotalBalance();
         
-        runTransfers(bank, bank::transfer_1);
+        runTransfers(bank, bank::transfer_bad);
 
         int finalTotalBalance = bank.getTotalBalance();
         assertEquals(initialTotalBalance, finalTotalBalance);

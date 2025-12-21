@@ -38,7 +38,7 @@ public class BankDemo {
     	}
     }
     
-    public synchronized void transfer_1(Account from, Account to, int amount) throws InterruptedException {
+    public synchronized void transfer_bad(Account from, Account to, int amount) throws InterruptedException {
 		from.withdraw(amount);
 		Thread.sleep(100); //Simulate long duration
 		to.deposit(amount);
