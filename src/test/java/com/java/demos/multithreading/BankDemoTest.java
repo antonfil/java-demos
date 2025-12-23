@@ -22,15 +22,15 @@ interface TransferOp {
  * Unit tests for BankDemo
  */
 public class BankDemoTest {
-	private static final int TEST_TRANSFERS_COUNT = 100;
-	private static final int TEST_TRANSFERS_MAX_AMOUNT = 1000;
+	private static final int TEST_TRANSFERS_COUNT = 1000;
+	private static final int TEST_TRANSFERS_MAX_AMOUNT = 100;
 
     @Test
     public void shouldSyncTransfersBetweenAccounts_1() throws Exception {
     	BankDemo bank = new BankDemo(); 
         int initialTotalBalance = bank.getTotalBalance();
         
-        runTransfers(bank, bank::transfer_1);
+        runTransfers(Executors.newFixedThreadPool(TEST_TRANSFERS_COUNT), bank, bank::transfer_1);
 
         int finalTotalBalance = bank.getTotalBalance();
         assertEquals(initialTotalBalance, finalTotalBalance);
@@ -41,7 +41,7 @@ public class BankDemoTest {
     	BankDemo bank = new BankDemo(); 
         int initialTotalBalance = bank.getTotalBalance();
         
-        runTransfers(bank, bank::transfer_2);
+        runTransfers(Executors.newFixedThreadPool(TEST_TRANSFERS_COUNT), bank, bank::transfer_2);
 
         int finalTotalBalance = bank.getTotalBalance();
         assertEquals(initialTotalBalance, finalTotalBalance);
@@ -52,14 +52,46 @@ public class BankDemoTest {
     	BankDemo bank = new BankDemo(); 
         int initialTotalBalance = bank.getTotalBalance();
         
-        runTransfers(bank, bank::transfer_3);
+        runTransfers(Executors.newFixedThreadPool(TEST_TRANSFERS_COUNT), bank, bank::transfer_3);
 
         int finalTotalBalance = bank.getTotalBalance();
         assertEquals(initialTotalBalance, finalTotalBalance);
     }
     
-    private void runTransfers(BankDemo bank, TransferOp operation) throws Exception {
-		ExecutorService executorService = Executors.newFixedThreadPool(TEST_TRANSFERS_COUNT);
+    @Test
+    public void shouldSyncTransfersBetweenAccountsUsingVirtualThreads_1() throws Exception {
+    	BankDemo bank = new BankDemo(); 
+        int initialTotalBalance = bank.getTotalBalance();
+        
+        runTransfers(Executors.newVirtualThreadPerTaskExecutor(), bank, bank::transfer_1);
+
+        int finalTotalBalance = bank.getTotalBalance();
+        assertEquals(initialTotalBalance, finalTotalBalance);
+    }
+    
+    @Test
+    public void shouldSyncTransfersBetweenAccountsUsingVirtualThreads_2() throws Exception {
+    	BankDemo bank = new BankDemo(); 
+        int initialTotalBalance = bank.getTotalBalance();
+        
+        runTransfers(Executors.newVirtualThreadPerTaskExecutor(), bank, bank::transfer_2);
+
+        int finalTotalBalance = bank.getTotalBalance();
+        assertEquals(initialTotalBalance, finalTotalBalance);
+    }
+    
+    @Test
+    public void shouldSyncTransfersBetweenAccountsUsingVirtualThreads_3() throws Exception {
+    	BankDemo bank = new BankDemo(); 
+        int initialTotalBalance = bank.getTotalBalance();
+        
+        runTransfers(Executors.newVirtualThreadPerTaskExecutor(), bank, bank::transfer_3);
+
+        int finalTotalBalance = bank.getTotalBalance();
+        assertEquals(initialTotalBalance, finalTotalBalance);
+    }
+    
+    private void runTransfers(ExecutorService executorService, BankDemo bank, TransferOp operation) throws Exception {
         List<Future<?>> futures = new ArrayList<>(TEST_TRANSFERS_COUNT); 
         for (int i = 0; i < TEST_TRANSFERS_COUNT; i++) {
         	futures.add(executorService.submit(() -> {

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 public class BankDemo {
-	private static final int ACCOUNTS_COUNT = 10;
+	private static final int ACCOUNTS_COUNT = 100;
 	private static final int SINGLE_ACCOUNT_INITIAL_BALANCE = 100_000;
 	
     private List<Account> accounts = new ArrayList<>(ACCOUNTS_COUNT);
@@ -36,7 +36,7 @@ public class BankDemo {
     		lockAccounts(from, to);
     		
     		from.withdraw(amount);
-    		Thread.sleep(100); //Simulate long duration
+    		Thread.sleep(10); //Simulate long duration
     		to.deposit(amount);
     	} finally {
     		unlockAccounts(from, to);
@@ -52,7 +52,7 @@ public class BankDemo {
     	synchronized(firstLock) {
     		synchronized(secondLock) {
     			from.withdraw(amount);
-    			Thread.sleep(100); //Simulate long duration
+    			Thread.sleep(10); //Simulate long duration
     			to.deposit(amount);
     		}
     	}
@@ -63,7 +63,7 @@ public class BankDemo {
     	if (from.getBalance() < amount) return;
     	
 		from.withdraw(amount);
-		Thread.sleep(100); //Simulate long duration
+		Thread.sleep(10); //Simulate long duration
 		to.deposit(amount);
     }
     
