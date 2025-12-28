@@ -30,13 +30,14 @@ public class BankDemo {
     
     public void transfer_1(Account from, Account to, int amount) throws InterruptedException {
     	if (from.getId() == to.getId()) return;
-    	if (from.getBalance() < amount) return;
     	
     	try {
     		lockAccounts(from, to);
     		
+    		if (from.getBalance() < amount) return;
+    		
     		from.withdraw(amount);
-    		Thread.sleep(10); //Simulate long duration
+    		Thread.sleep(100); //Simulate long duration
     		to.deposit(amount);
     	} finally {
     		unlockAccounts(from, to);
@@ -44,26 +45,27 @@ public class BankDemo {
     }
     
     public void transfer_2(Account from, Account to, int amount) throws InterruptedException {
-    	if (from == to) return;
-    	if (from.getBalance() < amount) return;
-    	
+    	if (from.getId() == to.getId()) return;
     	var firstLock = from.getId() < to.getId() ? from : to;
     	var secondLock = from.getId() < to.getId() ? to : from;
+    	
     	synchronized(firstLock) {
     		synchronized(secondLock) {
+    			if (from.getBalance() < amount) return;
+    			
     			from.withdraw(amount);
-    			Thread.sleep(10); //Simulate long duration
+    			Thread.sleep(100); //Simulate long duration
     			to.deposit(amount);
     		}
     	}
     }
     
     public synchronized void transfer_3(Account from, Account to, int amount) throws InterruptedException {
-    	if (from == to) return;
+    	if (from.getId() == to.getId()) return;
     	if (from.getBalance() < amount) return;
     	
 		from.withdraw(amount);
-		Thread.sleep(10); //Simulate long duration
+		Thread.sleep(100); //Simulate long duration
 		to.deposit(amount);
     }
     
